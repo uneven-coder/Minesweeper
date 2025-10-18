@@ -1,29 +1,28 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode, useState, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { themeChange } from 'theme-change'
+import Board from './board'
+import BottomPanel from './bottomPanel'
+import TopPanel from './topPanel'
 
+function App()
+{   // Main application component with game state management
+    const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy')
+    const boardRef = useRef<{ resetGame: (difficulty: 'easy' | 'medium' | 'hard') => void }>(null)
 
-function App() 
-{   // Main application component with theme switching functionality
-    
-    useEffect(() => 
-    {   // Initialize theme change functionality
-        themeChange(false)
-    }, [])
+    const handleResetGame = () => {
+        boardRef.current?.resetGame(difficulty)
+    }
 
     return (
-        <div className='w-full h-screen bg-base-100 text-base-content p-4'>
-            <h1 className='text-2xl font-bold mb-4'>Minesweeper</h1>
-            <p className='mb-4'>Welcome to Minesweeper!</p>
-            
-            <div className='mb-4'>
-                <label className='block text-sm font-medium mb-2'>Choose Theme:</label>
-                <select data-choose-theme className='select select-bordered w-full max-w-xs'>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                </select>
-            </div>
+        <div className="flex flex-col h-screen w-full">
+            <TopPanel />
+            <Board ref={boardRef} difficulty={difficulty}/>
+            <BottomPanel 
+                difficulty={difficulty} 
+                onDifficultyChange={setDifficulty}
+                onResetGame={handleResetGame}
+            />
         </div>
     )
 }
