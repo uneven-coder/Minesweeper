@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+### **Game Generation Design**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+To create a consistent and playable game board, I made some rules. I did leave out preventing 50/50 choices and will leave it as a optional feature after the game has been made, the focus is on solving generation and making reliable gameplay that i would play.
 
-Currently, two official plugins are available:
+#### **Generation Rules**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **Cell Connectivity**
 
-## React Compiler
+   * A cell cannot have all 9 neighboring cells as mines.
+   * All non-mine cells must be connected to each other.
+   * This is verified using a flood fill algorithm:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+     * If the number of connected non-mine cells does not equal the total number of cells minus the number of mines, the setup is considered invalid.
 
-## Expanding the ESLint configuration
+2. **Mine Isolation Prevention**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+   * No mine should be completely surrounded by other mines.
+   * Each mine must have at least one valid path to a wall or non-mine area.
+   * A flood fill check ensures that every mine is reachable and not fully enclosed.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+3. **Safe Start Area**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+   * Mines cannot be placed where the user clicks for the first time.
+   * The first click must reveal approximately **20% of the board**.
+   * A flood fill is used to ensure that the area around the initial click is clear of mines.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+#### **Implementation Process**
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+To handle these rules, the generation process is divided into stages:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. **Initial Mine Placement**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+   * Randomly generate and place n number of mines across the grid.
+
+2. **First Click Handling**
+
+   * When the user clicks for the first time, perform a flood fill with a maximum discovery limit of 20% of total cells.
+   * If a mine is found in this region, it is either pushed in the opisit direction from the center or randomly repositioned after the flood fill completes depednidng on computation needed or use both as fallback.
+   * Cells in this region are then marked as empty, while the rest remain unassigned.
+
+3. **Mine Connectivity Validation**
+
+   * Use flood fill to ensure each mine is connected to at least one wall.
+   * This step is performed before non-mine cell checks to reduce redundant validation loops.
+
+4. **Cell Connectivity Validation**
+
+   * Use flood fill again to confirm that all empty (non-mine) cells are connected.
+ 
+ 5. **Fallback**
+  * if either of 4-5 rules fail:
+    * if the scenario dosent identify a mine that is the cause like amine being surrounded by 9 mines where we could move the 9 mines or a percentage of them we
+    * randomly shift mines by 1 to 2 cells then re check, this is done a max of 3 tries
+    * if that fails we can replace all mines
+    * but these are unlikley and only will be added if i can at the end
+---
+
+Would you like me to make a **short version** (around half the length) for including in a development log or reflective report section?
+
+
+...
