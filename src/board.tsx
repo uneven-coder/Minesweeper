@@ -36,19 +36,17 @@ export interface BoardHandle {
     getCellRef: (x: number, y: number) => CellHandler | null;
 }
 
-function calculateBoardDimensions(width: number, height: number, Cols: number, Rows: number): BoardDimensions {
-    // Calculate optimal cell size and ensure even filler distribution
+function calculateBoardDimensions(width: number, height: number, Cols: number, Rows: number): BoardDimensions
+{
     const cellSize = Math.min(
         Math.floor(width / Cols),
         Math.floor(height / Rows)
     );
-    const maxPossibleCols = Math.floor(width / cellSize);
 
-    // Ensure even distribution by using only even number of extra columns
-    const extraCols = maxPossibleCols - Cols;
-    const evenExtraCols = extraCols > 0 ? Math.floor(extraCols / 2) * 2 : 0;
-    const fillerCols = evenExtraCols / 2;
-    const totalCols = Cols + evenExtraCols;
+    const maxPossibleCols = Math.floor(width / cellSize);
+    const extraSpace = maxPossibleCols - Cols;
+    const fillerCols = extraSpace > 0 ? Math.floor(extraSpace / 2) : 0;
+    const totalCols = Cols + (fillerCols * 2);
 
     return {
         cellSize,
@@ -60,37 +58,56 @@ function calculateBoardDimensions(width: number, height: number, Cols: number, R
 };
 
 const Board = forwardRef<BoardHandle, BoardProps>(
-    function Board({ maxBoardHeight = 500, difficulty }, ref) {
-        const cells = [];
+    function Board({ maxBoardHeight = 500, difficulty }, ref)
+    {   // Main board component managing game state and cell rendering
         const cellsRefs = useRef<Map<string,CellHandler>>(new Map());
         const setCellRef = (x: number, y: number, ref: CellHandler | null): void =>
-        {
+        {   // Manage cell references for game logic access
             const key = getCellKey(x, y);
             ref ? cellsRefs.current.set(key, ref) : cellsRefs.current.delete(key);
         };
+
         const boardRef = useRef<HTMLDivElement>(null);
+        const gameInitialized = useRef<boolean>(false);
+        const pendingDifficulty = useRef<GameStartState | null>(null);
 
         const [boardWidth, setBoardWidth] = useState<number>(100);
         const [boardHeight, setBoardHeight] = useState<number>(100);
 
-        const [currentDifficulty, setCurrentDifficulty] = useState<GameStartState>(difficulty);
-        const currentSettings = difficultySettings[currentDifficulty];
+        const [activeDifficulty, setActiveDifficulty] = useState<GameStartState>(difficulty);
+        const currentSettings = difficultySettings[activeDifficulty];
         const { width: Cols, height: Rows } = currentSettings;
 
         const getCellKey = (x: number, y: number): string => `${x}-${y}`;
 
+        const clearAllCells = () =>
+            cellsRefs.current.forEach(cellRef => cellRef.TESTsetValue(""));
+
+        const initializeGame = (targetDifficulty?: GameStartState) =>
+        {   // Initialize game state with specified difficulty
+            const difficultyToUse = targetDifficulty || activeDifficulty;
+            
+            clearAllCells();
+            GenerateGameState(
+                {
+                    getCellRef: (x: number, y: number) =>
+                    {   // Retrieve cell reference for game state initialization
+                        const key = getCellKey(x, y);
+                        return cellsRefs.current.get(key) || null;
+                    }
+                },
+                difficultyToUse
+            );
+            gameInitialized.current = true;
+            pendingDifficulty.current = null;
+        };
+
         useImperativeHandle(ref, () => ({
-            resetGame: (newDifficulty: GameStartState) => {
-                setCurrentDifficulty(newDifficulty);
-                GenerateGameState(
-                    {
-                        getCellRef: (x: number, y: number) => {
-                            const key = getCellKey(x, y);
-                            return cellsRefs.current.get(key) || null;
-                        }
-                    },
-                    newDifficulty
-                );
+            resetGame: (newDifficulty: GameStartState) =>
+            {   // Reset game with new difficulty settings and update board dimensions
+                gameInitialized.current = false;
+                pendingDifficulty.current = newDifficulty;
+                setActiveDifficulty(newDifficulty);
             },
             getCellRef: (x: number, y: number): CellHandler | null =>
             {   // Retrieve specific cell reference
@@ -100,9 +117,9 @@ const Board = forwardRef<BoardHandle, BoardProps>(
         }))
 
         useEffect(() =>
-        {   // Update size onStart and onChange
+        {
             const updateDimensions = () =>
-            {   // Recalculate board dimensions when container size changes
+            {
                 if (!boardRef.current) return;
                 setBoardWidth(boardRef.current.clientWidth);
                 setBoardHeight(Math.min(boardRef.current.clientHeight, maxBoardHeight));
@@ -114,38 +131,28 @@ const Board = forwardRef<BoardHandle, BoardProps>(
             return () => window.removeEventListener("resize", updateDimensions);
         }, [maxBoardHeight]);
 
-
-
         useEffect(() =>
-        {   // Run initialization when all cells are mounted
-            const initializeGame = () =>
-            {   // Set up initial game state with test values
-                GenerateGameState(
-                    {
-                        getCellRef: (x: number, y: number) =>
-                        {   // Retrieve cell reference for game state initialization
-                            const key = getCellKey(x, y);
-                            return cellsRefs.current.get(key) || null;
-                        }
-                    },
-                    currentDifficulty
-                );
-            };
-
-            if (cellsRefs.current.size === Cols * Rows)
+        {   // Initialize game when difficulty changes or handle pending initialization
+            if (!gameInitialized.current && pendingDifficulty.current)
+                initializeGame(pendingDifficulty.current);
+            else if (!gameInitialized.current)
                 initializeGame();
-        }, [cellsRefs.current.size, Cols, Rows, currentDifficulty]);
+        }, [activeDifficulty]);
 
         const dimensions = calculateBoardDimensions(boardWidth, boardHeight, Cols, Rows);
 
+        // Generate cells array with stable keys
+        const cells = [];
         for (let y = 0; y < Rows; y++) {
             for (let x = 0; x < dimensions.totalCols; x++) {
                 const gameX = x - dimensions.actualLeftPadding;
                 const isFiller = gameX < 0 || gameX >= Cols;
+                
+                const gridCellKey = isFiller ? `filler-${x}-${y}` : `game-${gameX}-${y}`;
 
                 cells.push(
                     <Cell 
-                        key={`${x}-${y}`} 
+                        key={gridCellKey}
                         x={gameX} 
                         y={y} 
                         isFiller={isFiller}
@@ -180,34 +187,34 @@ interface CellProps {
 }
 
 export interface CellHandler {
-    TESTsetValue: (value: number) => void;
+    TESTsetValue: (value: string) => void;
 }
 
-const Cell = forwardRef<CellHandler, CellProps>(
-function Cell({ x, y, isFiller }, ref) {
-    const [TestValue, setTestValue] = useState<number>(0);
-    
+const Cell = forwardRef<CellHandler, CellProps>(function Cell({ x, y, isFiller }, ref)
+{
+    const [TestValue, setTestValue] = useState<string>("");
+
     useImperativeHandle(ref, () => ({
-        TESTsetValue: (value: number): void => setTestValue(value),
+        TESTsetValue: (value: string): void => setTestValue(value),
     }));
 
-
-    // Render individual cell with checkered background pattern
     const isLight = (x + y) % 2 === 0;
     const lightDarkClass = isLight ? "cell-light" : "cell-dark";
-    const cellClass = isFiller
-        ? `filler ${lightDarkClass}`
-        : `cell ${lightDarkClass}`;
+    const cellClass = isFiller ? `filler ${lightDarkClass}` : `cell ${lightDarkClass}`;
+
+    const isNumber = !isNaN(parseFloat(TestValue)) && isFinite(Number(TestValue));
+    const textColor = isNumber ? `var(--number-${TestValue})` : undefined;
 
     return (
         <div
             className={`${cellClass} flex items-center justify-center text-xs font-bold`}
+            style={textColor ? { color: textColor } : undefined}
         >
-            {/* {!isFiller ? `${x},${y}` : ""}*/}
             {!isFiller && TestValue}
         </div>
     );
 });
+
 
 export default Board;
 

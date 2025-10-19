@@ -1,18 +1,23 @@
 import { StrictMode, useState, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import Board from './board'
+import Board, { BoardHandle } from './board'
 import BottomPanel from './bottomPanel'
 import TopPanel from './topPanel'
 
 function App()
 {   // Main application component with game state management
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy')
-    const boardRef = useRef<{ resetGame: (difficulty: 'easy' | 'medium' | 'hard') => void }>(null)
+    const boardRef = useRef<BoardHandle>(null)
 
-    const handleResetGame = () => {
-        boardRef.current?.resetGame(difficulty)
-    }
+    const handleResetGame = () =>
+    {   // Reset the current game board
+        if (boardRef.current)
+            boardRef.current.resetGame(difficulty);
+    };
+
+    const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') =>
+        setDifficulty(newDifficulty);
 
     return (
         <div className="flex flex-col h-screen w-full">
@@ -20,7 +25,7 @@ function App()
             <Board ref={boardRef} difficulty={difficulty}/>
             <BottomPanel 
                 difficulty={difficulty} 
-                onDifficultyChange={setDifficulty}
+                onDifficultyChange={handleDifficultyChange}
                 onResetGame={handleResetGame}
             />
         </div>

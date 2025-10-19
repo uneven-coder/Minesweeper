@@ -30,15 +30,15 @@
     --cell-null-light: #6E7D90;
     --cell-null-dark: #556484;
 
-    --number-1: #0000FF;
-    --number-2: #008200;
-    --number-3: #FF0000;
-    --number-4: #000084;
-    --number-5: #840000;
-    --number-6: #008284;
-    --number-7: #840084;
-    --number-8: #848484;
-    --number-9: #000000;
+    --number-1: #80b3ff;
+    --number-2: #8fd18f;
+    --number-3: #ff8f8f;
+    --number-4: #a0a0ff;
+    --number-5: #ffb3a7;
+    --number-6: #7fd6d6;
+    --number-7: #d38fd3;
+    --number-8: #bfbfbf;
+    --number-9: #e5e5e5;
 
     --clicked-mine: #c9525e;
     --correct-mine: #63a387;
@@ -61,7 +61,11 @@ body {
     height: 100%;
 }
 
-.cell { }
+.cell {
+    border-width: 1px; 
+    border: solid 0 1px 1px 0 #9CA3AF;
+    cursor: pointer; 
+}
 
 .cell-light {
     background-color: var(--cell-hidden-light);
@@ -70,6 +74,8 @@ body {
     background-color: var(--cell-hidden-dark);
 }
 
+.filler { }
+
 .filler.cell-light {
     background-color: var(--cell-null-light);
 }
@@ -77,6 +83,4 @@ body {
     background-color: var(--cell-null-dark);
 }
 
-.hidden {
-
-}
+.hidden { }
