@@ -17,7 +17,11 @@ function App()
     };
 
     const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') =>
+    {
         setDifficulty(newDifficulty);
+        if (boardRef.current)
+            boardRef.current.changeDifficulty(newDifficulty);
+    };
 
     return (
         <div className="flex flex-col h-screen w-full">
@@ -37,3 +41,6 @@ createRoot(document.getElementById('root')!).render(
         <App />
     </StrictMode>
 )
+
+// add timer
+// add avalible flags counter

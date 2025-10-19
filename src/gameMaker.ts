@@ -1,16 +1,23 @@
 // import { debug } from "console";
+import {getSafeCells, areEmptyCellsConnected, doMinesHaveEdgePath} from "./floodfill"
 
 interface BoardRef {
 	getCellRef: (
 		x: number,
 		y: number
-	) => { TESTsetValue: (value: string) => void } | null;
+	) => { 
+        setValue: (value: string) => void;
+        revealCell?: () => void;
+        getValue?: () => string;
+        isRevealed?: () => boolean;
+        resetCell?: () => void;
+    } | null;
 }
 
 const difficultySettings = {
 	easy: { width: 16, height: 16, mines: 40 },
-	medium: { width: 20, height: 16, mines: 70 },
-	hard: { width: 28, height: 16, mines: 140 },
+	medium: { width: 20, height: 16, mines: 56 },
+	hard: { width: 28, height: 16, mines: 100 },
 } as const;
 
 let GameGrid: Array<Array<number | string>> = [[]];
@@ -45,71 +52,141 @@ function checkAdj(x: number, y: number) {
 
 export function GenerateGameState(
 	boardRef?: BoardRef,
-	difficulty: keyof typeof difficultySettings = "easy"
-) {
-	// Generate game state and set test values for all cells
+	difficulty: keyof typeof difficultySettings = "easy",
+	startX?: number,
+	startY?: number,
+)
+{   // Generate game state
 
 	if (!boardRef) return {};
 
 	const settings = difficultySettings[difficulty];
 
-	// Initialize board - height then width
 	GameGrid = Array.from({ length: settings.height }, () =>
 		Array(settings.width).fill(0)
 	);
 
-	let hasEncasedMine = true;
-	while (hasEncasedMine) {
-		// Keep regenerating until no mines are completely surrounded
-		// Place mines without duplicates
+    if (startX === undefined || startY === undefined) {
+        startX = Math.floor(settings.width / 2);
+        startY = Math.floor(settings.height / 2);
+    }
+
+    const reservedCells = getSafeCells(startX, startY, settings.width, settings.height, settings.width * settings.height);
+
+	let validBoard = false;
+	let attempts = 0;
+	const maxAttempts = 50;
+
+	while (!validBoard && attempts < maxAttempts)
+	{   // Generate boards with limited attempts and progressive validation
+        // Only check connectivity after basic mine placement succeeds
+		attempts++;
 		const placedMines = new Set<string>();
 		GameGrid = Array.from({ length: settings.height }, () =>
 			Array(settings.width).fill(0)
 		);
 
-		while (placedMines.size < settings.mines) {
-			// Continue placing mines until we have the required number
-			const X = Math.floor(Math.random() * settings.width);
-			const Y = Math.floor(Math.random() * settings.height);
-			const mineKey = `${X},${Y}`;
+		// Strategic mine placement to avoid common invalid patterns
+		const edgePositions = [];
+		const centerPositions = [];
 
-			if (!placedMines.has(mineKey)) {
-				// Place mine if position is not already occupied
-				placedMines.add(mineKey);
-				GameGrid[Y][X] = "M";
+		for (let y = 0; y < settings.height; y++)
+		{
+			for (let x = 0; x < settings.width; x++)
+			{
+				const key = `${x},${y}`;
+				if (reservedCells.has(key) || (x === startX && y === startY)) continue;
+
+				if (x === 0 || x === settings.width - 1 || y === 0 || y === settings.height - 1)
+					edgePositions.push([x, y]);
+				else
+					centerPositions.push([x, y]);
 			}
 		}
 
-		// Validate mine positions - check if any mine has 8 adjacent mines
-		hasEncasedMine = false;
-		placedMines.forEach(mine => {
-			// Check each mine for complete encasement
+		// Place some mines on edges first for better connectivity
+		const edgeMines = Math.min(Math.floor(settings.mines * 0.3), edgePositions.length);
+		for (let i = 0; i < edgeMines && placedMines.size < settings.mines; i++)
+		{
+			const randomIndex = Math.floor(Math.random() * edgePositions.length);
+			const [x, y] = edgePositions.splice(randomIndex, 1)[0];
+			const mineKey = `${x},${y}`;
+			placedMines.add(mineKey);
+			GameGrid[y][x] = "M";
+		}
+
+		// Fill remaining with random placement
+		const allPositions = [...edgePositions, ...centerPositions];
+		while (placedMines.size < settings.mines && allPositions.length)
+		{
+			const randomIndex = Math.floor(Math.random() * allPositions.length);
+			const [x, y] = allPositions.splice(randomIndex, 1)[0];
+			const mineKey = `${x},${y}`;
+			placedMines.add(mineKey);
+			GameGrid[y][x] = "M";
+		}
+
+		// Quick validation first - check for encased mines
+		let hasEncasedMine = false;
+		for (const mine of placedMines)
+		{
 			const [x, y] = mine.split(',').map(Number);
-			const adjMines = checkAdj(x, y);
-			
-			if (adjMines === 8) {
-				// Mine is completely surrounded
-				console.debug("Encased mine detected, regenerating board");
+			if (checkAdj(x, y) === 8) {
 				hasEncasedMine = true;
+				break;
 			}
-		});
+		}
+
+		// Only do expensive connectivity checks if basic validation passes
+		if (!hasEncasedMine)
+		{
+			const emptyCellsConnected = areEmptyCellsConnected(GameGrid, settings.width, settings.height);
+			const minesHaveEdgePath = doMinesHaveEdgePath(GameGrid, settings.width, settings.height);
+			
+			if (emptyCellsConnected && minesHaveEdgePath)
+				validBoard = true;
+		}
+
+		if (!validBoard && attempts % 10 === 0)
+			console.debug(`Board generation attempt ${attempts}, retrying...`);
 	}
 
-	// Calculate numbers and set cell values
-	for (let y = 0; y < settings.height; y++) {
-		// Process each row of the game board
-		for (let x = 0; x < settings.width; x++) {
-			// Set each cell value based on mines or adjacent count
+	if (!validBoard) {
+		console.warn("Could not generate valid board within attempt limit, using fallback");
+		// Generate simple fallback board without strict validation
+		GameGrid = Array.from({ length: settings.height }, () =>
+			Array(settings.width).fill(0)
+		);
+		
+		const placedMines = new Set<string>();
+		while (placedMines.size < settings.mines)
+		{
+			const x = Math.floor(Math.random() * settings.width);
+			const y = Math.floor(Math.random() * settings.height);
+			const mineKey = `${x},${y}`;
+
+			if (!reservedCells.has(mineKey) && (x !== startX || y !== startY) && !placedMines.has(mineKey)) {
+				placedMines.add(mineKey);
+				GameGrid[y][x] = "M";
+			}
+		}
+	}
+
+	// Calculate numbers and set cell
+	for (let y = 0; y < settings.height; y++)
+	{   // Process each row
+		for (let x = 0; x < settings.width; x++)
+		{
 			const cellRef = boardRef.getCellRef(x, y);
-			if (!cellRef) return;
+			if (!cellRef) continue;
 
 			if (GetValueAt(x, y) === "M")
-				cellRef.TESTsetValue("M");
-			else {
-				// Calculate adjacent mines for number cells
-				const adjMines = checkAdj(x, y)
+				cellRef.setValue("M");
+			else
+			{   // Calculate adjacent mines
+				const adjMines = checkAdj(x, y);
 				GameGrid[y][x] = adjMines;
-				cellRef.TESTsetValue(`${adjMines}`);
+				cellRef.setValue(`${adjMines}`);
 			}
 		}
 	}

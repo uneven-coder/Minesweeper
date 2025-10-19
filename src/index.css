@@ -11,26 +11,30 @@
 
 [data-theme="dark"] {
     --background: #323C4C;
-
+    --text: #ffffff;
     /* the defult cell */
-    --cell-hidden-light: #56667A;
-    --cell-hidden-dark: #44506B;
+    --cell-hidden-light: #637284;
+    --cell-hidden-dark: #525b74;
 
     /* cell with flag or number */
     /* todo: change this */
-    --cell-content-light: #56667A;
-    --cell-content-dark: #44506B;
+    --cell-content-light: #6d8097;
+    --cell-content-dark: #5a6784;
 
     /* cell with nothing (it has been reveled and has nothing in it) */
-    --cell-empty-light: #6E7D90;
-    --cell-empty-dark: #556484;
+    /* --cell-empty-light: #6E7D90; */
+    /* --cell-empty-dark: #556484; */
+        --cell-empty-light: #78899f;
+    --cell-empty-dark: #6c7b9b;
 
     /* just filler cells for the diffrent difficulties but fit to the screen */
     /* todo: change this */
-    --cell-null-light: #6E7D90;
-    --cell-null-dark: #556484;
+    --cell-null-light: #7d8ea34b;
+    --cell-null-dark: #5e687f4b;
+    /* --cell-null-light: #97a7bd; */
+    /* --cell-null-dark: #73809b; */
 
-    --number-1: #80b3ff;
+    --number-1: #a5bbdc;
     --number-2: #8fd18f;
     --number-3: #ff8f8f;
     --number-4: #a0a0ff;
@@ -44,6 +48,41 @@
     --correct-mine: #63a387;
 }
 
+[data-theme="light"] {
+    --background: #f0f4f8;
+    --text: #000000;
+    /* the default cell */
+    --cell-hidden-light: #d0d8e0;
+    --cell-hidden-dark: #c0c8d4;
+
+    /* cell with flag or number */
+    --cell-content-light: #e0e6ed;
+    --cell-content-dark: #d4d8e0;
+
+    /* cell with nothing (it has been revealed and has nothing in it) */
+    --cell-empty-light: #f5f7fa;
+    --cell-empty-dark: #e0e4eb;
+
+    /* just filler cells for the different difficulties but fit to the screen */
+    --cell-null-light: #dbe2eb;
+    --cell-null-dark: #cdd6e4;
+
+    /* numbers */
+    --number-1: #2a5dab;
+    --number-2: #2d8f2d;
+    --number-3: #d95f5f;
+    --number-4: #4b4bd4;
+    --number-5: #d97f6f;
+    --number-6: #4dbcbc;
+    --number-7: #a24db2;
+    --number-8: #555555;
+    --number-9: #888888;
+
+    --clicked-mine: #d85a64;
+    --correct-mine: #52b38a;
+}
+
+
 html {
     height: 100%;
 }
@@ -53,7 +92,7 @@ body {
     padding: 0;
     height: 100%;
     background: var(--background);
-    color: #ffffff;
+    color: var(--text);
     overflow: hidden;
 }
 
@@ -62,10 +101,24 @@ body {
 }
 
 .cell {
-    border-width: 1px; 
-    border: solid 0 1px 1px 0 #9CA3AF;
+    /* border-width: 1px;  */
+    /* border: solid 0 1px 1px 0 #9CA3AF; */
     cursor: pointer; 
 }
+
+
+/* Rectangle 18 */
+
+/* position: absolute;
+width: 100px;
+height: 100px;
+left: 320px;
+top: 111px;
+
+background: #44506B; */
+
+
+
 
 .cell-light {
     background-color: var(--cell-hidden-light);
@@ -83,4 +136,70 @@ body {
     background-color: var(--cell-null-dark);
 }
 
-.hidden { }
+.content.cell-light {
+    background-color: var(--cell-content-light);
+}
+.content.cell-dark {
+    background-color: var(--cell-content-dark);
+}
+
+.empty.cell-light {
+    background-color: var(--cell-empty-light);
+}
+.empty.cell-dark {
+    background-color: var(--cell-empty-dark);
+}
+
+button {
+    cursor: pointer;
+    box-shadow: inset -2px -2px 0px rgba(39, 70, 96, 0.25) !important;
+}
+
+
+    select  {
+        position: relative;
+        display: inline-block;
+        font-family: inherit;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    select  select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        color: #ffffff;
+        background-color: var(--cell-hidden-light);
+        border: none;
+        border-radius: 0.25rem;
+        box-shadow: inset -2px -2px 0 rgba(39, 70, 96, 0.25);
+        cursor: pointer;
+    }
+
+    select ::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 0.75rem;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-right: 1px solid #ffffff;
+        border-bottom: 1px solid #ffffff;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    select  select:focus {
+        outline: none;
+        box-shadow:
+            inset -2px -2px 0 rgba(39, 70, 96, 0.25),
+            0 0 0 2px var(--number-4);
+    }
+
+    select  option {
+        background-color: var(--cell-content-light);
+        color: var(--text);
+    }
