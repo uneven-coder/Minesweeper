@@ -5,7 +5,7 @@ import {
     forwardRef,
     useImperativeHandle,
 } from "react";
-import { useGameSeed } from "./gameMaker";
+import { GenerateGameState } from "./gameMaker";
 
 interface BoardDimensions {
     cellSize: number;
@@ -33,6 +33,7 @@ interface BoardProps {
 
 export interface BoardHandle {
     resetGame: (difficulty: GameStartState) => void;
+    getCellRef: (x: number, y: number) => CellHandler | null;
 }
 
 function calculateBoardDimensions(width: number, height: number, Cols: number, Rows: number): BoardDimensions {
@@ -61,6 +62,12 @@ function calculateBoardDimensions(width: number, height: number, Cols: number, R
 const Board = forwardRef<BoardHandle, BoardProps>(
     function Board({ maxBoardHeight = 500, difficulty }, ref) {
         const cells = [];
+        const cellsRefs = useRef<Map<string,CellHandler>>(new Map());
+        const setCellRef = (x: number, y: number, ref: CellHandler | null): void =>
+        {
+            const key = getCellKey(x, y);
+            ref ? cellsRefs.current.set(key, ref) : cellsRefs.current.delete(key);
+        };
         const boardRef = useRef<HTMLDivElement>(null);
 
         const [boardWidth, setBoardWidth] = useState<number>(100);
@@ -70,17 +77,32 @@ const Board = forwardRef<BoardHandle, BoardProps>(
         const currentSettings = difficultySettings[currentDifficulty];
         const { width: Cols, height: Rows } = currentSettings;
 
+        const getCellKey = (x: number, y: number): string => `${x}-${y}`;
 
         useImperativeHandle(ref, () => ({
             resetGame: (newDifficulty: GameStartState) => {
-                setCurrentDifficulty(newDifficulty)
-                useGameSeed()
-            }
+                setCurrentDifficulty(newDifficulty);
+                GenerateGameState(
+                    {
+                        getCellRef: (x: number, y: number) => {
+                            const key = getCellKey(x, y);
+                            return cellsRefs.current.get(key) || null;
+                        }
+                    },
+                    newDifficulty
+                );
+            },
+            getCellRef: (x: number, y: number): CellHandler | null =>
+            {   // Retrieve specific cell reference
+                const key = getCellKey(x, y);
+                return cellsRefs.current.get(key) || null;
+            },
         }))
 
-        useEffect(() => {
-            // update size onStart and onChange
-            const updateDimensions = () => {
+        useEffect(() =>
+        {   // Update size onStart and onChange
+            const updateDimensions = () =>
+            {   // Recalculate board dimensions when container size changes
                 if (!boardRef.current) return;
                 setBoardWidth(boardRef.current.clientWidth);
                 setBoardHeight(Math.min(boardRef.current.clientHeight, maxBoardHeight));
@@ -92,6 +114,28 @@ const Board = forwardRef<BoardHandle, BoardProps>(
             return () => window.removeEventListener("resize", updateDimensions);
         }, [maxBoardHeight]);
 
+
+
+        useEffect(() =>
+        {   // Run initialization when all cells are mounted
+            const initializeGame = () =>
+            {   // Set up initial game state with test values
+                GenerateGameState(
+                    {
+                        getCellRef: (x: number, y: number) =>
+                        {   // Retrieve cell reference for game state initialization
+                            const key = getCellKey(x, y);
+                            return cellsRefs.current.get(key) || null;
+                        }
+                    },
+                    currentDifficulty
+                );
+            };
+
+            if (cellsRefs.current.size === Cols * Rows)
+                initializeGame();
+        }, [cellsRefs.current.size, Cols, Rows, currentDifficulty]);
+
         const dimensions = calculateBoardDimensions(boardWidth, boardHeight, Cols, Rows);
 
         for (let y = 0; y < Rows; y++) {
@@ -100,7 +144,13 @@ const Board = forwardRef<BoardHandle, BoardProps>(
                 const isFiller = gameX < 0 || gameX >= Cols;
 
                 cells.push(
-                    <Cell key={`${x}-${y}`} x={gameX} y={y} isFiller={isFiller} />
+                    <Cell 
+                        key={`${x}-${y}`} 
+                        x={gameX} 
+                        y={y} 
+                        isFiller={isFiller}
+                        ref={isFiller ? null : (ref) => setCellRef(gameX, y, ref)}
+                    />
                 );
             }
         }
@@ -129,7 +179,19 @@ interface CellProps {
     isFiller: boolean;
 }
 
-function Cell({ x, y, isFiller }: CellProps) {
+export interface CellHandler {
+    TESTsetValue: (value: number) => void;
+}
+
+const Cell = forwardRef<CellHandler, CellProps>(
+function Cell({ x, y, isFiller }, ref) {
+    const [TestValue, setTestValue] = useState<number>(0);
+    
+    useImperativeHandle(ref, () => ({
+        TESTsetValue: (value: number): void => setTestValue(value),
+    }));
+
+
     // Render individual cell with checkered background pattern
     const isLight = (x + y) % 2 === 0;
     const lightDarkClass = isLight ? "cell-light" : "cell-dark";
@@ -141,10 +203,11 @@ function Cell({ x, y, isFiller }: CellProps) {
         <div
             className={`${cellClass} flex items-center justify-center text-xs font-bold`}
         >
-            {!isFiller ? `${x},${y}` : ""}
+            {/* {!isFiller ? `${x},${y}` : ""}*/}
+            {!isFiller && TestValue}
         </div>
     );
-}
+});
 
 export default Board;
 
