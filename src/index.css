@@ -64,8 +64,8 @@
     --cell-null-light: #d3dae34b;
     --cell-null-dark: #b8c0cc4b;
 
-    --cell-satisfied-light: #e0e8f0;
-    --cell-satisfied-dark: #c8d4e0;
+    --cell-satisfied-light: #c8defb;
+    --cell-satisfied-dark: #bbd3f7;
 
     /* numbers */
     --number-1: #2a5dab;
@@ -73,7 +73,7 @@
     --number-3: #d95f5f;
     --number-4: #4b4bd4;
     --number-5: #d97f6f;
-    --number-6: #4dbcbc;
+    --number-6: #1b4e7b;
     --number-7: #a24db2;
     --number-8: #555555;
     --number-9: #888888;
