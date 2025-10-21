@@ -109,7 +109,7 @@ export function handleCellFlag(x: number, y: number, cellsRefs: Map<string, Cell
     return true;
 }
 
-export function initializeGameWithReveal(clickedX: number, clickedY: number, cellsRefs: Map<string, CellHandler>, getCellKey: (x: number, y: number) => string, difficulty: GameStartState, Cols: number, Rows: number, setGameInitialized: (value: boolean) => void, setGameEnded: (value: boolean) => void): void
+export function initializeGameWithReveal(clickedX: number, clickedY: number, cellsRefs: Map<string, CellHandler>, _getCellKey: (x: number, y: number) => string, difficulty: GameStartState, Cols: number, Rows: number, setGameInitialized: (value: boolean) => void, setGameEnded: (value: boolean) => void): void
 {   // Initialize game state and reveal first cell
     GenerateGameState(cellsRefs, difficulty, clickedX, clickedY);
     setGameInitialized(true);

@@ -85,7 +85,7 @@ export const Board = forwardRef<BoardHandle, { maxBoardHeight?: number; difficul
 );
 
 const Cell = forwardRef<CellHandler, { x: number; y: number; isFiller: boolean; onCellClick: (x: number, y: number) => void; onCellFlag: (x: number, y: number) => void; gameActive: boolean; gameInitialized: boolean; difficulty: GameStartState; Cols: number; Rows: number }>(
-    function Cell({ x, y, isFiller, onCellClick, onCellFlag, gameActive, gameInitialized, difficulty, Cols, Rows }, ref)
+    function Cell({ x, y, isFiller, onCellClick, onCellFlag, gameActive: _gameActive, gameInitialized, difficulty: _difficulty, Cols, Rows }, ref)
     {   // Individual cell component with reveal and flag states
         // Tracks satisfaction state for cells where all adjacent mines are flagged
         const [cellState, setCellState] = useState({ revealed: false, value: "", flagged: false });
