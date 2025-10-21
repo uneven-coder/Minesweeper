@@ -1,4 +1,5 @@
-export default function TopPanel() {
+export const TopPanel = () =>
+{   // Top panel for game statistics and timer display
 
     return (
         <div className="w-full h-40 bg-base-200 flex items-center justify-center">
@@ -6,3 +7,5 @@ export default function TopPanel() {
         </div>
     )
 }
+
+export default TopPanel;

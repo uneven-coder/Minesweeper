@@ -10,29 +10,23 @@
 }
 
 [data-theme="dark"] {
-    --background: #323C4C;
+    --background: #1b1f27;
     --text: #ffffff;
-    /* the defult cell */
-    --cell-hidden-light: #637284;
-    --cell-hidden-dark: #525b74;
 
-    /* cell with flag or number */
-    /* todo: change this */
-    --cell-content-light: #6d8097;
-    --cell-content-dark: #5a6784;
+    --cell-hidden-light: #7a8bac;
+    --cell-hidden-dark: #627196;
 
-    /* cell with nothing (it has been reveled and has nothing in it) */
-    /* --cell-empty-light: #6E7D90; */
-    /* --cell-empty-dark: #556484; */
-        --cell-empty-light: #78899f;
-    --cell-empty-dark: #6c7b9b;
+    --cell-content-light: #465b85;
+    --cell-content-dark: #324061;
 
-    /* just filler cells for the diffrent difficulties but fit to the screen */
-    /* todo: change this */
-    --cell-null-light: #7d8ea34b;
-    --cell-null-dark: #5e687f4b;
-    /* --cell-null-light: #97a7bd; */
-    /* --cell-null-dark: #73809b; */
+    --cell-empty-light: #485368;
+    --cell-empty-dark: #39445b;
+
+    --cell-null-light: #5c66794b;
+    --cell-null-dark: #464d5e4b;
+
+    --cell-satisfied-light: #3a4556;
+    --cell-satisfied-dark: #2d3543;
 
     --number-1: #a5bbdc;
     --number-2: #8fd18f;
@@ -44,28 +38,34 @@
     --number-8: #bfbfbf;
     --number-9: #e5e5e5;
 
+    --number-satisfied: #5a6575;
+
     --clicked-mine: #c9525e;
     --correct-mine: #63a387;
 }
 
-[data-theme="light"] {
-    --background: #f0f4f8;
-    --text: #000000;
-    /* the default cell */
-    --cell-hidden-light: #d0d8e0;
-    --cell-hidden-dark: #c0c8d4;
+[data-theme="color"] {
+    --background: #F1DeDe;
+    --text: #3a3a3a;
 
-    /* cell with flag or number */
-    --cell-content-light: #e0e6ed;
-    --cell-content-dark: #d4d8e0;
+    /* default cell */
+    --cell-hidden-light: #b8a8ff;
+    --cell-hidden-dark: #9a8ef0;
 
-    /* cell with nothing (it has been revealed and has nothing in it) */
-    --cell-empty-light: #f5f7fa;
-    --cell-empty-dark: #e0e4eb;
+    /* revealed cell with number or flag */
+    --cell-content-light: #a7c9ff;
+    --cell-content-dark: #8db3f5;
 
-    /* just filler cells for the different difficulties but fit to the screen */
-    --cell-null-light: #dbe2eb;
-    --cell-null-dark: #cdd6e4;
+    /* revealed empty cell */
+    --cell-empty-light: #cde6ff;
+    --cell-empty-dark: #a6c8ea;
+
+    /* filler/null cells */
+    --cell-null-light: #d3dae34b;
+    --cell-null-dark: #b8c0cc4b;
+
+    --cell-satisfied-light: #e0e8f0;
+    --cell-satisfied-dark: #c8d4e0;
 
     /* numbers */
     --number-1: #2a5dab;
@@ -77,6 +77,49 @@
     --number-7: #a24db2;
     --number-8: #555555;
     --number-9: #888888;
+
+    --number-satisfied: #8a95a5;
+
+    /* mines */
+    --clicked-mine: #ff9a9a;
+    --correct-mine: #a8ebc0;
+}
+
+
+[data-theme="light"] {
+    --background: #f0f4f8;
+    --text: #000000;
+    /* the default cell */
+    --cell-hidden-light: #b8cae2;
+    --cell-hidden-dark: #aab9d2;
+
+    /* cell with flag or number */
+    --cell-content-light: #e6eaf0;
+    --cell-content-dark: #e4e5e6;
+
+    /* cell with nothing (it has been revealed and has nothing in it) */
+    --cell-empty-light: #d7dee5;
+    --cell-empty-dark: #c4cedb;
+
+    /* just filler cells for the different difficulties but fit to the screen */
+    --cell-null-light: #dbe2eb;
+    --cell-null-dark: #d3dae4;
+
+    --cell-satisfied-light: #e8edf2;
+    --cell-satisfied-dark: #dce3ea;
+
+    /* numbers */
+    --number-1: #2a5dab;
+    --number-2: #2d8f2d;
+    --number-3: #d95f5f;
+    --number-4: #4b4bd4;
+    --number-5: #d97f6f;
+    --number-6: #4dbcbc;
+    --number-7: #a24db2;
+    --number-8: #555555;
+    --number-9: #888888;
+
+    --number-satisfied: #8a95a5;
 
     --clicked-mine: #d85a64;
     --correct-mine: #52b38a;
@@ -150,6 +193,13 @@ background: #44506B; */
     background-color: var(--cell-empty-dark);
 }
 
+.satisfied.cell-light {
+    background-color: var(--cell-satisfied-light);
+}
+.satisfied.cell-dark {
+    background-color: var(--cell-satisfied-dark);
+}
+
 button {
     cursor: pointer;
     box-shadow: inset -2px -2px 0px rgba(39, 70, 96, 0.25) !important;
@@ -200,6 +250,6 @@ button {
     }
 
     select  option {
-        background-color: var(--cell-content-light);
+        background-color: var(--background);
         color: var(--text);
     }

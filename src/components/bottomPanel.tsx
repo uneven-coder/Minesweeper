@@ -1,13 +1,9 @@
 import { useEffect } from 'react'
 import { themeChange } from 'theme-change'
+import type { GameStartState } from '../types/board.types'
 
-interface BottomPanelProps {
-    difficulty: 'easy' | 'medium' | 'hard'
-    onDifficultyChange: (difficulty: 'easy' | 'medium' | 'hard') => void
-    onResetGame?: () => void
-}
-
-export default function BottomPanel({ difficulty, onDifficultyChange, onResetGame }: BottomPanelProps) {   // Bottom panel for theme selection and game controls
+export const BottomPanel = ({ difficulty, onDifficultyChange, onResetGame }: { difficulty: GameStartState; onDifficultyChange: (difficulty: GameStartState) => void; onResetGame?: () => void }) =>
+{   // Bottom panel for theme selection and game controls
     useEffect(() => { themeChange(false) }, [])
 
     return (
@@ -17,30 +13,23 @@ export default function BottomPanel({ difficulty, onDifficultyChange, onResetGam
                 <select data-choose-theme className='select select-bordered w-full max-w-xs'>
                     <option value="light">Light</option>
                     <option value="dark">Dark</option>
+                    <option value="color">Color</option>
                 </select>
             </div>
             
             <div>
                 <label className='block text-sm font-medium'>Difficulty:</label>
-                <select 
-                    value={difficulty}
-                    onChange={(e) => onDifficultyChange(e.target.value as 'easy' | 'medium' | 'hard')}
-                    className='select select-bordered w-full max-w-xs'
-                >
+                <select value={difficulty} onChange={(e) => onDifficultyChange(e.target.value as GameStartState)}
+                        className='select select-bordered w-full max-w-xs'>
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
                 </select>
             </div>
             
-            {onResetGame && (
-                <button 
-                    onClick={onResetGame}
-                    className='btn btn-primary'
-                >
-                    Reset Game
-                </button>
-            )}
+            {onResetGame && <button onClick={onResetGame} className='btn btn-primary'>Reset Game</button>}
         </div>
     )
 }
+
+export default BottomPanel
